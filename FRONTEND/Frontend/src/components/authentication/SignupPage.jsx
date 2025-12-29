@@ -18,7 +18,7 @@ const SignupPage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    console.log(signUpData);
+    // console.log(signUpData);
 
     try {
       const res = await axios.post(
