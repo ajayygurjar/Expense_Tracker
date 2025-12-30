@@ -1,4 +1,4 @@
-const Expense = require("../models/Expense");
+const { Expense } = require("../models");
 
 exports.addExpense = async (req, res) => {
   try {
@@ -11,7 +11,8 @@ exports.addExpense = async (req, res) => {
     const expense = await Expense.create({
       amount,
       description,
-      category
+      category,
+      userId:req.user.userId
     });
 
     return res.status(201).json({ 
@@ -30,6 +31,7 @@ exports.addExpense = async (req, res) => {
 exports.getExpenses = async (req, res) => {
   try {
     const expenses = await Expense.findAll({
+      where:{userId:req.user.userId},
       order: [['createdAt', 'DESC']]
     });
 
@@ -43,7 +45,9 @@ exports.getExpenses = async (req, res) => {
 exports.deleteExpenses=async(req,res)=>{
   try {
     const {id}=req.params;
-    const expense=await Expense.findByPk(id);
+    const expense=await Expense.findOne({
+      where:{id,userId:req.user.userId}
+    })
     if(!expense){
       return res.status(404).json({message:"Expense not found"});
     }

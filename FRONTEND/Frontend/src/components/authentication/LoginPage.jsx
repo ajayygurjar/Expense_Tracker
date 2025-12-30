@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from '../../api/axios'
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,16 +23,14 @@ const LoginPage = () => {
     e.preventDefault();
     // console.log(loginData);
     try {
-      const res = await axios.post(
-        `http://localhost:5000/api/login`,
-        loginData
-      );
+      const res = await axios.post('/login',loginData);
+      localStorage.setItem("token",res.data.token)
       alert(res.data.message);
       setLoginData({ email: "", password: "" });
       navigate('/expenses')
     } catch (error) {
       console.error(error);
-      alert(error.response.data.message);
+      alert(error.response?.data?.message || "Login failed");
     }
   };
 

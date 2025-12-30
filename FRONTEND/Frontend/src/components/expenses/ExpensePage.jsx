@@ -1,7 +1,9 @@
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import axios from "../../api/axios";
 import { useEffect, useState } from "react";
 
 const ExpensePage = () => {
+  const navigate=useNavigate();
   const [expenseData, setExpenseData] = useState({
     amount: "",
     description: "",
@@ -11,22 +13,28 @@ const ExpensePage = () => {
 
   const [expenses,setExpenses]=useState([])
 
-  useEffect(()=>{
-    fetchExpenses();
-  },[])
 
-
+  
   //fetch expenses
   const fetchExpenses=async()=>{
     try {
-        const res= await axios.get('http://localhost:5000/api/expenses');
-        setExpenses(res.data.expenses || []);
+        const res= await axios.get('/expenses');
+        setExpenses(res.data.expenses);
     } catch (error) {
         console.error("error fetching expenses",error);
-        alert("failed to fetch expenses")
-        
+        alert("Unauthorized")
+        navigate('/')
     }
   }
+  useEffect(()=>{
+    if(!localStorage.getItem('token')){
+      navigate('/');
+      return;
+    }
+    fetchExpenses();
+  },[navigate])
+
+
   //Change Handler
   const changeHandler = (e) => {
     const { name, value } = e.target;
@@ -41,10 +49,7 @@ const ExpensePage = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/expenses/add",
-        expenseData
-      );
+      const res = await axios.post("/expenses/add",expenseData);
 
       alert(res.data.message);
 
@@ -62,7 +67,7 @@ const ExpensePage = () => {
 
   const deleteHandler=async(id)=>{
     try {
-        await axios.delete(`http://localhost:5000/api/expenses/${id}`);
+        await axios.delete(`/expenses/${id}`);
         alert('Expense deleted sucessfully');
         fetchExpenses();
     } catch (error) {

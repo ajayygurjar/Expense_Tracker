@@ -1,5 +1,6 @@
-const User = require("../models/User");
+const {User}=require('../models')
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.signup = async (req, res) => {
   try {
@@ -29,6 +30,18 @@ exports.signup = async (req, res) => {
   }
 };
 
+//generating token
+
+function generateAccessToken(id) {
+  return jwt.sign(
+    { userId: id },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+}
+
+
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -40,12 +53,15 @@ exports.login = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    
     const isMatched=await bcrypt.compare(password,user.password)
     if (!isMatched) {
       return res.status(401).json({ message: "User not authorized" });
     }
+    const token=generateAccessToken(user.id)
     return res.status(200).json({
       message: "User login successful",
+      token,
       user: {
         id: user.id,
         name: user.name,
