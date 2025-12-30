@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const ExpensePage = () => {
   const [expenseData, setExpenseData] = useState({
@@ -8,6 +8,25 @@ const ExpensePage = () => {
     category: "",
   });
 
+
+  const [expenses,setExpenses]=useState([])
+
+  useEffect(()=>{
+    fetchExpenses();
+  },[])
+
+
+  //fetch expenses
+  const fetchExpenses=async()=>{
+    try {
+        const res= await axios.get('http://localhost:5000/api/expenses');
+        setExpenses(res.data.expenses || []);
+    } catch (error) {
+        console.error("error fetching expenses",error);
+        alert("failed to fetch expenses")
+        
+    }
+  }
   //Change Handler
   const changeHandler = (e) => {
     const { name, value } = e.target;
@@ -23,7 +42,7 @@ const ExpensePage = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/expenses/addexpense",
+        "http://localhost:5000/api/expenses/add",
         expenseData
       );
 
@@ -39,6 +58,8 @@ const ExpensePage = () => {
       console.log(error);
     }
   };
+
+  
 
   return (
     <>
@@ -74,6 +95,14 @@ const ExpensePage = () => {
         </select>
         <button>Submit</button>
       </form>
+
+      <hr/>
+      {expenses.map((exp) => (
+        <div key={exp.id}>
+          ₹{exp.amount} - {exp.description} ({exp.category})
+          <button>Delete</button>
+        </div>
+      ))}
     </>
   );
 };
