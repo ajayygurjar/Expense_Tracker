@@ -39,3 +39,19 @@ exports.getExpenses = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.deleteExpenses=async(req,res)=>{
+  try {
+    const {id}=req.params;
+    const expense=await Expense.findByPk(id);
+    if(!expense){
+      return res.status(404).json({message:"Expense not found"});
+    }
+    await expense.destroy();
+    return res.status(200).json({message:"expense deleted successfully"})
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({message:'Server error'})
+  }
+
+}

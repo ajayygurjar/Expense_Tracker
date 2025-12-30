@@ -54,12 +54,24 @@ const ExpensePage = () => {
         description: "",
         category: "",
       });
+      fetchExpenses();
     } catch (error) {
       console.log(error);
     }
   };
 
-  
+  const deleteHandler=async(id)=>{
+    try {
+        await axios.delete(`http://localhost:5000/api/expenses/${id}`);
+        alert('Expense deleted sucessfully');
+        fetchExpenses();
+    } catch (error) {
+        console.error('Error deleting expense',error);
+        alert("falid to delete expense");
+        
+    }
+
+  }
 
   return (
     <>
@@ -100,7 +112,7 @@ const ExpensePage = () => {
       {expenses.map((exp) => (
         <div key={exp.id}>
           ₹{exp.amount} - {exp.description} ({exp.category})
-          <button>Delete</button>
+          <button onClick={()=>deleteHandler(exp.id)}>Delete</button>
         </div>
       ))}
     </>
