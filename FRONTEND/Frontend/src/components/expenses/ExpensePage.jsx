@@ -1,7 +1,8 @@
+import axios from "axios";
 import { useState } from "react";
 
 const ExpensePage = () => {
-  const [ExpenseData, setExpenseData] = useState({
+  const [expenseData, setExpenseData] = useState({
     amount: "",
     description: "",
     category: "",
@@ -16,13 +17,27 @@ const ExpensePage = () => {
     }));
   };
 
-
-  
   //Handle Submit Request
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log(ExpenseData);
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/expenses/addexpense",
+        expenseData
+      );
+
+      alert(res.data.message);
+
+      // clear form
+      setExpenseData({
+        amount: "",
+        description: "",
+        category: "",
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -34,7 +49,7 @@ const ExpensePage = () => {
           type="number"
           id="expenseAmount"
           name="amount"
-          value={ExpenseData.amount}
+          value={expenseData.amount}
           onChange={changeHandler}
         />
         <label htmlFor="description">Description</label>
@@ -42,14 +57,14 @@ const ExpensePage = () => {
           type="text"
           id="description"
           name="description"
-          value={ExpenseData.description}
+          value={expenseData.description}
           onChange={changeHandler}
         />
         <label htmlFor="expenseCategory">Expense Category</label>
         <select
           id="expenseCategory"
           name="category"
-          value={ExpenseData.description}
+          value={expenseData.category}
           onChange={changeHandler}
         >
           <option value="">Select category</option>

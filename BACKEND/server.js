@@ -5,6 +5,7 @@ const cors = require("cors");
 
 const sequelize = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
+const expenseRoutes=require('./routes/expenseRoutes')
 
 const app = express();
 
@@ -13,7 +14,10 @@ app.use(express.json());
 
 
 app.use("/api", authRoutes);
-sequelize.sync().then(()=>{
+app.use("/api/expenses", expenseRoutes);
+
+
+sequelize.sync({ force: true }).then(()=>{
    console.log("Database connected & tables created");
     app.listen(process.env.PORT, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);
