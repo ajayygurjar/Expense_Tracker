@@ -3,37 +3,40 @@ import axios from "../../api/axios";
 import { useEffect, useState } from "react";
 
 const ExpensePage = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [expenseData, setExpenseData] = useState({
     amount: "",
     description: "",
     category: "",
   });
 
+  const [expenses, setExpenses] = useState([]);
 
-  const [expenses,setExpenses]=useState([])
+  //logout handler
+  const logoutHandler = () => {
+    localStorage.removeItem("token");
+    alert("Logged out successfully");
+    navigate("/");
+  };
 
-
-  
   //fetch expenses
-  const fetchExpenses=async()=>{
+  const fetchExpenses = async () => {
     try {
-        const res= await axios.get('/expenses');
-        setExpenses(res.data.expenses);
+      const res = await axios.get("/expenses");
+      setExpenses(res.data.expenses);
     } catch (error) {
-        console.error("error fetching expenses",error);
-        alert("Unauthorized")
-        navigate('/')
+      console.error("error fetching expenses", error);
+      alert("Unauthorized");
+      navigate("/");
     }
-  }
-  useEffect(()=>{
-    if(!localStorage.getItem('token')){
-      navigate('/');
+  };
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      navigate("/");
       return;
     }
     fetchExpenses();
-  },[navigate])
-
+  }, [navigate]);
 
   //Change Handler
   const changeHandler = (e) => {
@@ -49,7 +52,7 @@ const ExpensePage = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("/expenses/add",expenseData);
+      const res = await axios.post("/expenses/add", expenseData);
 
       alert(res.data.message);
 
@@ -65,22 +68,23 @@ const ExpensePage = () => {
     }
   };
 
-  const deleteHandler=async(id)=>{
+  const deleteHandler = async (id) => {
     try {
-        await axios.delete(`/expenses/${id}`);
-        alert('Expense deleted sucessfully');
-        fetchExpenses();
+      await axios.delete(`/expenses/${id}`);
+      alert("Expense deleted sucessfully");
+      fetchExpenses();
     } catch (error) {
-        console.error('Error deleting expense',error);
-        alert("falid to delete expense");
-        
+      console.error("Error deleting expense", error);
+      alert("falid to delete expense");
     }
-
-  }
+  };
 
   return (
     <>
       <h1>Expense Page</h1>
+      <button onClick={logoutHandler} style={{ marginBottom: "10px" }}>
+        Logout
+      </button>
       <form onSubmit={handleSubmit}>
         <label htmlFor="expenseAmount">Expense Amount</label>
         <input
@@ -113,11 +117,11 @@ const ExpensePage = () => {
         <button>Submit</button>
       </form>
 
-      <hr/>
+      <hr />
       {expenses.map((exp) => (
         <div key={exp.id}>
           ₹{exp.amount} - {exp.description} ({exp.category})
-          <button onClick={()=>deleteHandler(exp.id)}>Delete</button>
+          <button onClick={() => deleteHandler(exp.id)}>Delete</button>
         </div>
       ))}
     </>
