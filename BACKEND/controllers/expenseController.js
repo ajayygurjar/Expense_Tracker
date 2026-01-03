@@ -1,4 +1,4 @@
-const { Expense } = require("../models");
+const { Expense, User } = require("../models");
 
 exports.addExpense = async (req, res) => {
   try {
@@ -12,18 +12,24 @@ exports.addExpense = async (req, res) => {
       amount,
       description,
       category,
-      userId:req.user.userId
+      userId: req.user.userId,
     });
+    const user = await User.findByPk(req.user.userId);
 
-    return res.status(201).json({ 
+    if (user) {
+      const newTotalCost = parseFloat(user.totalCost) + parseFloat(amount);
+      await user.update({ totalCost: newTotalCost });
+    }
+
+    return res.status(201).json({
       message: "Expense added successfully",
-      expense 
+      expense,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: "Server error",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -31,8 +37,8 @@ exports.addExpense = async (req, res) => {
 exports.getExpenses = async (req, res) => {
   try {
     const expenses = await Expense.findAll({
-      where:{userId:req.user.userId},
-      order: [['createdAt', 'DESC']]
+      where: { userId: req.user.userId },
+      order: [["createdAt", "DESC"]],
     });
 
     return res.status(200).json({ expenses });
@@ -42,20 +48,26 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
-exports.deleteExpenses=async(req,res)=>{
+exports.deleteExpenses = async (req, res) => {
   try {
-    const {id}=req.params;
-    const expense=await Expense.findOne({
-      where:{id,userId:req.user.userId}
-    })
-    if(!expense){
-      return res.status(404).json({message:"Expense not found"});
+    const { id } = req.params;
+    const expense = await Expense.findOne({
+      where: { id, userId: req.user.userId },
+    });
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
     }
-    await expense.destroy();
-    return res.status(200).json({message:"expense deleted successfully"})
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({message:'Server error'})
-  }
+    const expenseAmount = parseFloat(expense.amount);
 
-}
+    await expense.destroy();
+    const user=await User.findByPk(req.user.userId);
+    if(user){
+      const newTotalCost=parseFloat(user.totalCost)-expenseAmount;
+      await user.update({ totalCost: Math.max(0, newTotalCost) });;
+    }
+    return res.status(200).json({ message: "expense deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
