@@ -138,6 +138,20 @@ export const getPaymentStatus = async (req, res) => {
 
     console.log(`Updated ${updatedRows} order(s) with status: ${paymentStatus}`);
 
+     if (paymentStatus === "SUCCESS") {
+      // Find which user made this order
+      const order = await Order.findOne({ where: { orderId } });
+      
+      if (order) {
+        // Update the user's isPremium field to true in database
+        await User.update(
+          { isPremium: true },
+          { where: { id: order.userId } }
+        );
+        console.log(`User ${order.userId} upgraded to premium`);
+      }
+    }
+
     res.status(200).json({
       orderId,
       paymentStatus,

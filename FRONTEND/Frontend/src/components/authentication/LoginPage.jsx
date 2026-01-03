@@ -25,6 +25,8 @@ const LoginPage = () => {
     try {
       const res = await axios.post('/login',loginData);
       localStorage.setItem("token",res.data.token)
+
+      localStorage.setItem('isPremium',res.data.user.isPremium);
       alert(res.data.message);
       setLoginData({ email: "", password: "" });
       navigate('/expenses')

@@ -7,6 +7,7 @@ const {sequelize} = require("./models");
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes=require('./routes/expenseRoutes');
 const paymentRoutes = require("./routes/paymentRoutes"); 
+const premiumRoutes=require('./routes/premiumRoutes');
 
 const app = express();
 
@@ -17,9 +18,9 @@ app.use(express.json());
 app.use("/api", authRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use('/api/premium',premiumRoutes);
 
-
-sequelize.sync({ force: true }).then(()=>{
+sequelize.sync({ alter: true }).then(()=>{
    console.log("Database connected & tables created");
     app.listen(process.env.PORT, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);
