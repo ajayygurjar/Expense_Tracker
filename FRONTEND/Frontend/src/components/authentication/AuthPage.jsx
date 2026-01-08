@@ -1,13 +1,13 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
 import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     if (localStorage.getItem("token")) {
       navigate("/expenses");
     }
@@ -18,16 +18,20 @@ const AuthPage = () => {
   };
   return (
     <>
-      {isLogin ? <LoginPage /> : <SignupPage />}
-      <p>
-        {isLogin ? "Don't have an account?" : "Already have an account"}
-        <span
-          style={{ color: "blue", cursor: "pointer", marginLeft: "5px" }}
-          onClick={loginHandler}
-        >
-          {isLogin ? "Sign up" : "Login"}
-        </span>
-      </p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+          {isLogin ? <LoginPage /> : <SignupPage />}
+          <p className="text-center mt-4 text-gray-700">
+            {isLogin ? "Don't have an account?" : "Already have an account"}
+            <span
+              className="text-blue-500 cursor-pointer ml-1 hover:underline"
+              onClick={loginHandler}
+            >
+              {isLogin ? "Sign up" : "Login"}
+            </span>
+          </p>
+        </div>
+      </div>
     </>
   );
 };
