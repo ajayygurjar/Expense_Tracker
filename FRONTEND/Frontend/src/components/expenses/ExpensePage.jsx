@@ -96,6 +96,8 @@ const ExpensePage = () => {
 
   return (
     <>
+    
+    <PremiumBanner isPremium={isPremium} />
      <Header
       isPremium={isPremium}
       cashfree={cashfree}
@@ -105,19 +107,15 @@ const ExpensePage = () => {
       loadingLeaderboard={loadingLeaderboard}
       navigate={navigate}
     />
-
-    <PremiumBanner isPremium={isPremium} />
-
-    <Leaderboard
+    <ExpenseForm fetchExpenses={fetchExpenses} />
+    <hr />
+        <Leaderboard
       isPremium={isPremium}
       showLeaderboard={showLeaderboard}
       leaderboard={leaderboard}
       loading={loadingLeaderboard}
     />
 
-    <ExpenseForm fetchExpenses={fetchExpenses} />
-
-    <hr />
 
     <ExpenseList
       expenses={expenses}
