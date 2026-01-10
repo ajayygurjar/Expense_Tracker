@@ -1,11 +1,14 @@
 const { Expense, User } = require("../models");
+const sequelize = require("../config/database");
 
 exports.addExpense = async (req, res) => {
+  const t = sequelize.transaction();
   try {
     const { amount, description } = req.body;
     let category = req.body.category;
 
     if (!amount || !description) {
+      await t.rollback();
       return res.status(400).json({ message: "All fields are required" });
     }
     if (!category || category.trim() === "") {
@@ -13,24 +16,31 @@ exports.addExpense = async (req, res) => {
     }
     category = (category || "others").trim().toLowerCase();
 
-    const expense = await Expense.create({
-      amount,
-      description,
-      category,
-      userId: req.user.userId,
-    });
-    const user = await User.findByPk(req.user.userId);
+    const expense = await Expense.create(
+      {
+        amount,
+        description,
+        category,
+        userId: req.user.userId,
+      },
+      {
+        transaction: t,
+      }
+    );
+    const user = await User.findByPk(req.user.userId, { transaction: t });
 
     if (user) {
       const newTotalCost = parseFloat(user.totalCost) + parseFloat(amount);
-      await user.update({ totalCost: newTotalCost });
+      await user.update({ totalCost: newTotalCost }, { transaction: t });
     }
+    await t.commit();
 
     return res.status(201).json({
       message: "Expense added successfully",
       expense,
     });
   } catch (error) {
+    await t.rollback();
     console.error(error);
     return res.status(500).json({
       message: "Server error",
@@ -54,21 +64,26 @@ exports.getExpenses = async (req, res) => {
 };
 
 exports.deleteExpenses = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
     const expense = await Expense.findOne({
       where: { id, userId: req.user.userId },
+      transaction: t,
     });
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }
     const expenseAmount = parseFloat(expense.amount);
 
-    await expense.destroy();
-    const user = await User.findByPk(req.user.userId);
+    await expense.destroy({ transaction: t });
+    const user = await User.findByPk(req.user.userId, { transaction: t });
     if (user) {
       const newTotalCost = parseFloat(user.totalCost) - expenseAmount;
-      await user.update({ totalCost: Math.max(0, newTotalCost) });
+      await user.update(
+        { totalCost: Math.max(0, newTotalCost) },
+        { transaction: t }
+      );
     }
     return res.status(200).json({ message: "expense deleted successfully" });
   } catch (error) {

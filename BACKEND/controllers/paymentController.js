@@ -1,5 +1,6 @@
 import { Cashfree, CFEnvironment } from "cashfree-pg";
 import { Order, User } from "../models/index.js";
+const sequelize = require("../config/database");
 
 const cashfree = new Cashfree(
   CFEnvironment.SANDBOX,
@@ -55,6 +56,7 @@ export const getPaymentPage = (req, res) => {
 
 // PROCESS PAYMENT
 export const processPayment = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     // Get userId from JWT token
     const userId = req.user.userId;
@@ -64,7 +66,7 @@ export const processPayment = async (req, res) => {
     console.log("Full req.user object:", req.user);
 
     // Verify user exists in database
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, { transaction: t });
     if (!user) {
       console.error("User not found in database for userId:", userId);
       return res.status(404).json({ message: "User not found" });
@@ -89,22 +91,28 @@ export const processPayment = async (req, res) => {
     console.log("Payment session created, now creating order in DB...");
 
     // Create order in database
-    const order = await Order.create({
-      orderId,
-      paymentSessionId,
-      orderAmount,
-      orderCurrency,
-      paymentStatus: "PENDING",
-      userId,
-    });
+    const order = await Order.create(
+      {
+        orderId,
+        paymentSessionId,
+        orderAmount,
+        orderCurrency,
+        paymentStatus: "PENDING",
+        userId,
+      },
+      { transaction: t }
+    );
 
     console.log("Order created successfully:", order.id);
+
+    await t.commit();
 
     res.status(200).json({
       orderId,
       paymentSessionId,
     });
   } catch (error) {
+    await t.rollback();
     console.error("Error processing payment:", error.message);
     console.error("Full error:", error);
     res.status(500).json({
@@ -118,6 +126,7 @@ export const processPayment = async (req, res) => {
 export const getPaymentStatus = async (req, res) => {
   const { orderId } = req.params;
 
+  const t = await sequelize.transaction();
   try {
     const response = await cashfree.PGOrderFetchPayments(orderId);
     const transactions = response.data;
@@ -132,7 +141,7 @@ export const getPaymentStatus = async (req, res) => {
 
     const [updatedRows] = await Order.update(
       { paymentStatus },
-      { where: { orderId } }
+      { where: { orderId },transaction:t }
     );
 
     console.log(
@@ -141,21 +150,22 @@ export const getPaymentStatus = async (req, res) => {
 
     if (paymentStatus === "SUCCESS") {
       // Find which user made this order
-      const order = await Order.findOne({ where: { orderId } });
+      const order = await Order.findOne({ where: { orderId },transaction:t });
 
       if (order) {
         // Update the user's isPremium field to true in database
-        await User.update({ isPremium: true }, { where: { id: order.userId } });
+        await User.update({ isPremium: true }, { where: { id: order.userId },transaction:t });
         console.log(`User ${order.userId} upgraded to premium`);
       }
     }
-
+    await t.commit();
     res.status(200).json({
       orderId,
       paymentStatus,
       transactions,
     });
   } catch (error) {
+    await t.rollback();
     console.error("Error fetching payment status:", error.message);
     res.status(500).json({ message: "Unable to fetch payment status" });
   }
