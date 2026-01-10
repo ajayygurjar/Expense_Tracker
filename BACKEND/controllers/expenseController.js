@@ -2,7 +2,7 @@ const { Expense, User } = require("../models");
 const sequelize = require("../config/database");
 
 exports.addExpense = async (req, res) => {
-  const t = sequelize.transaction();
+  const t = await sequelize.transaction();
   try {
     const { amount, description } = req.body;
     let category = req.body.category;
@@ -85,8 +85,10 @@ exports.deleteExpenses = async (req, res) => {
         { transaction: t }
       );
     }
+    await t.commit();
     return res.status(200).json({ message: "expense deleted successfully" });
   } catch (error) {
+    await t.rollback();
     console.error(error);
     return res.status(500).json({ message: "Server error" });
   }
