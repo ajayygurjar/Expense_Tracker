@@ -3,8 +3,8 @@ import { Order, User } from "../models/index.js";
 
 const cashfree = new Cashfree(
   CFEnvironment.SANDBOX,
-  "TEST430329ae80e0f32e41a393d78b923034",
-  "TESTaf195616268bd6202eeb3bf8dc458956e7192a85"
+  process.env.CASHFREE_APP_ID,
+  process.env.CASHFREE_SECRET_KEY
 );
 
 // CREATE ORDER (Cashfree)
@@ -58,7 +58,7 @@ export const processPayment = async (req, res) => {
   try {
     // Get userId from JWT token
     const userId = req.user.userId;
-    
+
     // Debug: Log the userId
     console.log("Processing payment for userId:", userId);
     console.log("Full req.user object:", req.user);
@@ -107,9 +107,9 @@ export const processPayment = async (req, res) => {
   } catch (error) {
     console.error("Error processing payment:", error.message);
     console.error("Full error:", error);
-    res.status(500).json({ 
-      message: "Payment processing failed", 
-      error: error.message 
+    res.status(500).json({
+      message: "Payment processing failed",
+      error: error.message,
     });
   }
 };
@@ -130,24 +130,22 @@ export const getPaymentStatus = async (req, res) => {
       paymentStatus = "FAILED";
     }
 
-    
     const [updatedRows] = await Order.update(
       { paymentStatus },
       { where: { orderId } }
     );
 
-    console.log(`Updated ${updatedRows} order(s) with status: ${paymentStatus}`);
+    console.log(
+      `Updated ${updatedRows} order(s) with status: ${paymentStatus}`
+    );
 
-     if (paymentStatus === "SUCCESS") {
+    if (paymentStatus === "SUCCESS") {
       // Find which user made this order
       const order = await Order.findOne({ where: { orderId } });
-      
+
       if (order) {
         // Update the user's isPremium field to true in database
-        await User.update(
-          { isPremium: true },
-          { where: { id: order.userId } }
-        );
+        await User.update({ isPremium: true }, { where: { id: order.userId } });
         console.log(`User ${order.userId} upgraded to premium`);
       }
     }
