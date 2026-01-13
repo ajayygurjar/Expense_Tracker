@@ -8,6 +8,7 @@ const ExpenseForm = ({ fetchExpenses }) => {
     category: "",
   });
   const [loading, setLoading] = useState(false);
+  const [sourceTag, setSourceTag] = useState(""); // ✨ New: Tracks AI vs Local
   const [recentCategories, setRecentCategories] = useState([]);
   const lastDescriptionRef = useRef("");
 
@@ -29,13 +30,14 @@ const ExpenseForm = ({ fetchExpenses }) => {
     setLoading(true);
     try {
       const res = await axios.post("/ai/suggest", { description });
-      const aiCategory = res.data?.suggestedCategory;
+      const { suggestedCategory, source } = res.data;
 
-      if (aiCategory) {
-        setExpenseData((prev) => ({
-          ...prev,
-          category: aiCategory,
-        }));
+      if (suggestedCategory) {
+        setExpenseData((prev) => ({ ...prev, category: suggestedCategory }));
+        setSourceTag(source === "gemini" ? "✨ AI Suggested" : "🔍 Local Match");
+        
+        // Hide tag after 3 seconds
+        setTimeout(() => setSourceTag(""), 3000);
         lastDescriptionRef.current = description;
       }
     } catch (err) {
@@ -54,6 +56,7 @@ const ExpenseForm = ({ fetchExpenses }) => {
     try {
       await axios.post("/expenses/add", expenseData);
       setExpenseData({ amount: "", description: "", category: "" });
+      setSourceTag("");
       lastDescriptionRef.current = "";
       fetchExpenses();
     } catch (error) {
@@ -62,77 +65,91 @@ const ExpenseForm = ({ fetchExpenses }) => {
   };
 
   return (
-    <>
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-          Expense Form
-        </h3>
-        <form onSubmit={submitHandler} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount (₹)
-              </label>
-              <input
-                type="number"
-                name="amount"
-                placeholder="Amount"
-                value={expenseData.amount}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="description"
-                  placeholder="Description"
-                  value={expenseData.description}
-                  onChange={changeHandler}
-                  required
-                />
+    <div className="bg-white rounded-lg shadow-md p-6 mb-4 border border-gray-100">
+      <h3 className="text-xl font-bold text-gray-800 mb-6 flex justify-between items-center">
+        Add New Expense
+        {sourceTag && (
+          <span className={`text-[10px] px-2 py-1 rounded-full animate-pulse ${
+            sourceTag.includes("AI") ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
+          }`}>
+            {sourceTag}
+          </span>
+        )}
+      </h3>
+      
+      <form onSubmit={submitHandler} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Amount Input */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1">Amount (₹)</label>
+            <input
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+              type="number"
+              name="amount"
+              placeholder="0.00"
+              value={expenseData.amount}
+              onChange={changeHandler}
+              required
+            />
+          </div>
 
-                <button
-                  type="button"
-                  onClick={handleAiSuggest}
-                  disabled={loading}
-                  className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all border ${
-                    loading
-                      ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                      : "bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 active:scale-95"
-                  }`}
-                >
-                  {loading ? "Analyzing..." : "Auto-Fill Category"}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
+          {/* Description Input + AI Button */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1">Description</label>
+            <div className="flex gap-2">
               <input
+                className="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                 type="text"
-                name="category"
-                value={expenseData.category}
+                name="description"
+                placeholder="e.g. Dinner at KFC"
+                value={expenseData.description}
                 onChange={changeHandler}
-                list="cats"
+                required
               />
-              <datalist id="cats">
-                {recentCategories.map((cat, i) => (
-                  <option key={i} value={cat} />
-                ))}
-              </datalist>
+              <button
+                type="button"
+                onClick={handleAiSuggest}
+                disabled={loading}
+                className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                  loading 
+                  ? "bg-gray-50 text-gray-400 border-gray-200" 
+                  : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                }`}
+              >
+                {loading ? "..." : "AI"}
+              </button>
             </div>
           </div>
-          <button className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 shadow-md hover:shadow-lg">
-            Add Expense
-          </button>
-        </form>
-      </div>
-    </>
+
+          {/* Category Input */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1">Category</label>
+            <input
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+              type="text"
+              name="category"
+              placeholder="Category"
+              value={expenseData.category}
+              onChange={changeHandler}
+              list="cats"
+              required
+            />
+            <datalist id="cats">
+              {recentCategories.map((cat, i) => (
+                <option key={i} value={cat} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-lg active:scale-[0.98]"
+        >
+          Save Expense
+        </button>
+      </form>
+    </div>
   );
 };
 

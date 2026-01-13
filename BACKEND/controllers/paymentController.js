@@ -1,5 +1,5 @@
-import { Cashfree, CFEnvironment } from "cashfree-pg";
-import { Order, User } from "../models/index.js";
+const { Cashfree, CFEnvironment }= require("cashfree-pg");
+const { Order, User } = require("../models/index.js");
 const sequelize = require("../config/database");
 
 const cashfree = new Cashfree(
@@ -48,14 +48,14 @@ const createOrder = async (
 };
 
 // PAYMENT PAGE (Frontend handles UI)
-export const getPaymentPage = (req, res) => {
+exports.getPaymentPage = (req, res) => {
   res.json({
     message: "Payment page handled on frontend",
   });
 };
 
 // PROCESS PAYMENT
-export const processPayment = async (req, res) => {
+exports.processPayment = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     // Get userId from JWT token
@@ -123,7 +123,7 @@ export const processPayment = async (req, res) => {
 };
 
 // GET PAYMENT STATUS
-export const getPaymentStatus = async (req, res) => {
+exports.getPaymentStatus = async (req, res) => {
   const { orderId } = req.params;
 
   const t = await sequelize.transaction();
