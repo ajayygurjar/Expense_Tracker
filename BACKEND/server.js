@@ -9,6 +9,7 @@ const expenseRoutes=require('./routes/expenseRoutes');
 const paymentRoutes = require("./routes/paymentRoutes"); 
 const premiumRoutes=require('./routes/premiumRoutes');
 const aiCategoryRoutes = require("./routes/aiCategoryRoutes");
+const passwordRoutes = require("./routes/passwordRoutes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use('/api/premium',premiumRoutes);
 app.use("/api/ai", aiCategoryRoutes);
+app.use("/api/password", passwordRoutes);
 
 sequelize.sync({ alter: true }).then(()=>{
    console.log("Database connected & tables created");

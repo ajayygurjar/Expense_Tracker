@@ -2,7 +2,7 @@ import axios from "../../api/axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
+const LoginPage = ({ onForgotPassword }) => {
   const navigate = useNavigate();
 
   const [loginData, setLoginData] = useState({
@@ -71,6 +71,13 @@ const LoginPage = () => {
           </div>
           <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors">
             Submit
+          </button>
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="w-full text-blue-500 hover:underline text-sm mt-2"
+          >
+            Forgot Password?
           </button>
         </form>
       </div>
