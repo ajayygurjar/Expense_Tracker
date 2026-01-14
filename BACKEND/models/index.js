@@ -5,6 +5,7 @@ const sequelize = require('../config/database');
 const User = require('./User');
 const Expense = require('./Expense');
 const Order = require('./Order');
+const ForgotPasswordRequest = require('./ForgotPasswordRequest');
 
 // Define relationships HERE (not in individual model files)
 User.hasMany(Expense, { 
@@ -24,10 +25,21 @@ Order.belongsTo(User, {
   foreignKey: 'userId',
 });
 
+
+// ForgotPasswordRequest relationship
+User.hasMany(ForgotPasswordRequest, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE'
+});
+
+ForgotPasswordRequest.belongsTo(User, {
+  foreignKey: 'userId'
+});
 // Export everything
 module.exports = {
   sequelize,
   User,
   Expense,
-  Order
+  Order,
+  ForgotPasswordRequest,
 };

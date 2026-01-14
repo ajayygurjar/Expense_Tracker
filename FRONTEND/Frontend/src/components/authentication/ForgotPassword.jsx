@@ -6,18 +6,21 @@ const ForgotPassword = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [resetId, setResetId] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setError("");
+    setResetId("");
 
     try {
       const res = await axios.post("/password/forgotpassword", { email });
-      
+
       if (res.data.success) {
         setMessage(res.data.message);
+        setResetId(res.data.resetId);
         setEmail("");
       }
     } catch (err) {
@@ -29,9 +32,7 @@ const ForgotPassword = ({ onBack }) => {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Forgot Password
-      </h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Forgot Password</h2>
       <p className="text-gray-600 mb-6">
         Enter your email to receive reset instructions.
       </p>
@@ -54,13 +55,28 @@ const ForgotPassword = ({ onBack }) => {
 
         {message && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-             {message}
+            <p>{message}</p>
+            {resetId && (
+              <div className="mt-2 pt-2 border-t border-green-300">
+                <p className="text-sm">
+                  If email doesn't arrive, use this link:
+                </p>
+                <a
+                  href={`http://localhost:5000/api/password/resetpassword/${resetId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline text-sm break-all"
+                >
+                  Reset Password Link
+                </a>
+              </div>
+            )}
           </div>
         )}
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-             {error}
+            {error}
           </div>
         )}
 
