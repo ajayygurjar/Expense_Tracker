@@ -1,10 +1,7 @@
-import axios from "../../api/axios";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "../../context/AuthContext";
 const LoginPage = ({ onForgotPassword }) => {
-  const navigate = useNavigate();
-
+  const { login } = useAuth();
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -21,18 +18,14 @@ const LoginPage = ({ onForgotPassword }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    // console.log(loginData);
-    try {
-      const res = await axios.post("/login", loginData);
-      localStorage.setItem("token", res.data.token);
 
-      localStorage.setItem("isPremium", res.data.user.isPremium);
-      alert(res.data.message);
+    const result = await login(loginData);
+
+    if (result.success) {
+      alert(result.message);
       setLoginData({ email: "", password: "" });
-      navigate("/expenses");
-    } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Login failed");
+    } else {
+      alert(result.message);
     }
   };
 

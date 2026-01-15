@@ -1,6 +1,8 @@
 import { useState } from "react";
-import axios from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+
 const SignupPage = () => {
+  const { signup } = useAuth();
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
@@ -18,19 +20,14 @@ const SignupPage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    // console.log(signUpData);
 
-    try {
-      const res = await axios.post(`signup`, signUpData);
-      alert(res.data.message);
+    const result = await signup(signUpData);
+
+    if (result.success) {
+      alert(result.message);
       setSignUpData({ name: "", email: "", password: "" });
-    } catch (error) {
-      if (error.response) {
-        alert(error.response.data.message);
-      } else {
-        alert("Server error. Try again later.");
-      }
-      console.error(error);
+    } else {
+      alert(result.message);
     }
   };
   return (

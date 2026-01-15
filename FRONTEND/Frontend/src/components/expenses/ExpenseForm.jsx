@@ -1,137 +1,171 @@
 import { useState, useRef, useEffect } from "react";
-import axios from "../../api/axios";
+import { useExpense } from "../../context/ExpenseContext";
 
-const ExpenseForm = ({ fetchExpenses }) => {
+const ExpenseForm = () => {
+  const { recentCategories, fetchCategories, addExpense, getSuggestedCategory } = useExpense();
+
   const [expenseData, setExpenseData] = useState({
     amount: "",
     description: "",
     category: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [sourceTag, setSourceTag] = useState(""); // ✨ New: Tracks AI vs Local
-  const [recentCategories, setRecentCategories] = useState([]);
+
+  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+  const [sourceTag, setSourceTag] = useState("");
   const lastDescriptionRef = useRef("");
 
+  // Fetch recent categories on mount
   useEffect(() => {
-    axios.get("/expenses/categories").then((res) => {
-      setRecentCategories(res.data.categories || []);
-    });
-  }, []);
+    fetchCategories();
+  }, [fetchCategories]);
 
+  // Handle AI suggestion for category
   const handleAiSuggest = async () => {
-    const description = expenseData.description.trim().toLowerCase();
+    const description = expenseData.description.trim();
 
     if (description.length < 3) {
       alert("Please enter a longer description first!");
       return;
     }
+
     if (lastDescriptionRef.current === description) return;
 
-    setLoading(true);
-    try {
-      const res = await axios.post("/ai/suggest", { description });
-      const { suggestedCategory, source } = res.data;
+    setLoadingSuggestion(true);
 
-      if (suggestedCategory) {
-        setExpenseData((prev) => ({ ...prev, category: suggestedCategory }));
-        setSourceTag(source === "gemini" ? "✨ AI Suggested" : "🔍 Local Match");
-        
-        // Hide tag after 3 seconds
+    try {
+      const result = await getSuggestedCategory(description);
+
+      if (result.success) {
+        setExpenseData((prev) => ({
+          ...prev,
+          category: result.suggestedCategory,
+        }));
+
+        setSourceTag(result.source === "gemini" ? "AI Suggested" : "Local Match");
+
+        // Remove source tag after 3 seconds
         setTimeout(() => setSourceTag(""), 3000);
+
         lastDescriptionRef.current = description;
+      } else {
+        alert("Failed to get category suggestion");
       }
-    } catch (err) {
-      console.error("AI Suggestion failed:", err);
+    } catch (error) {
+      console.error(error);
+      alert("Error fetching category suggestion");
     } finally {
-      setLoading(false);
+      setLoadingSuggestion(false);
     }
   };
 
+  // Handle input changes
   const changeHandler = (e) => {
     setExpenseData({ ...expenseData, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const submitHandler = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post("/expenses/add", expenseData);
+
+    const { amount, description, category } = expenseData;
+
+    if (!amount || !description || !category) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const result = await addExpense(expenseData);
+
+    if (result.success) {
+      alert("Expense added successfully!");
       setExpenseData({ amount: "", description: "", category: "" });
       setSourceTag("");
       lastDescriptionRef.current = "";
-      fetchExpenses();
-    } catch (error) {
-      console.error("Failed to add expense", error);
+    } else {
+      alert(result.message || "Failed to add expense");
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-4 border border-gray-100">
+    <div className="bg-white rounded-lg shadow-md p-6 mb-4 border border-gray-100 max-w-7xl mx-auto">
       <h3 className="text-xl font-bold text-gray-800 mb-6 flex justify-between items-center">
         Add New Expense
         {sourceTag && (
-          <span className={`text-[10px] px-2 py-1 rounded-full animate-pulse ${
-            sourceTag.includes("AI") ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
-          }`}>
+          <span
+            className={`text-[10px] px-2 py-1 rounded-full animate-pulse ${
+              sourceTag.includes("AI")
+                ? "bg-purple-100 text-purple-600"
+                : "bg-blue-100 text-blue-600"
+            }`}
+          >
             {sourceTag}
           </span>
         )}
       </h3>
-      
+
       <form onSubmit={submitHandler} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Amount Input */}
+          {/* Amount */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">Amount (₹)</label>
+            <label className="text-sm font-semibold text-gray-600 mb-1">
+              Amount (₹)
+            </label>
             <input
-              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
               type="number"
               name="amount"
               placeholder="0.00"
               value={expenseData.amount}
               onChange={changeHandler}
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
               required
+              min="0"
+              step="0.01"
             />
           </div>
 
-          {/* Description Input + AI Button */}
+          {/* Description + AI Suggest */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">Description</label>
+            <label className="text-sm font-semibold text-gray-600 mb-1">
+              Description
+            </label>
             <div className="flex gap-2">
               <input
-                className="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                 type="text"
                 name="description"
                 placeholder="e.g. Dinner at KFC"
                 value={expenseData.description}
                 onChange={changeHandler}
+                className="flex-1 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                 required
               />
               <button
                 type="button"
                 onClick={handleAiSuggest}
-                disabled={loading}
+                disabled={loadingSuggestion}
                 className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
-                  loading 
-                  ? "bg-gray-50 text-gray-400 border-gray-200" 
-                  : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                  loadingSuggestion
+                    ? "bg-gray-50 text-gray-400 border-gray-200"
+                    : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                 }`}
               >
-                {loading ? "..." : "AI"}
+                {loadingSuggestion ? "..." : "AI Suggest"}
               </button>
             </div>
           </div>
 
-          {/* Category Input */}
+          {/* Category */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">Category</label>
+            <label className="text-sm font-semibold text-gray-600 mb-1">
+              Category
+            </label>
             <input
-              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
               type="text"
               name="category"
               placeholder="Category"
               value={expenseData.category}
               onChange={changeHandler}
               list="cats"
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
               required
             />
             <datalist id="cats">
@@ -142,8 +176,8 @@ const ExpenseForm = ({ fetchExpenses }) => {
           </div>
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-lg active:scale-[0.98]"
         >
           Save Expense
