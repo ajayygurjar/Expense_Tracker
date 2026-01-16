@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLeaderboard } from "../../context/LeaderboardContext";
 
@@ -5,31 +6,40 @@ const Leaderboard = () => {
   const { isPremium } = useAuth();
   const { showLeaderboard, leaderboard, loading } = useLeaderboard();
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   if (!isPremium || !showLeaderboard) return null;
 
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        
-        <p className="text-gray-600">Loading leaderboard...</p>{" "}
-        
+        <p className="text-gray-600">Loading leaderboard...</p>
       </div>
     );
   }
-   if (!leaderboard || leaderboard.length === 0) {
+
+  if (!leaderboard || leaderboard.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold mb-4 text-gray-800">Leaderboard</h2>
-          <p className="text-gray-600">No leaderboard data available yet.</p> 
+          <p className="text-gray-600">No leaderboard data available yet.</p>
         </div>
       </div>
     );
   }
 
+  const totalPages = Math.ceil(leaderboard.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = leaderboard.slice(indexOfFirstItem, indexOfLastItem);
+
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   return (
-    <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-6">
       <div className="bg-white rounded-lg shadow-md p-6 overflow-x-auto">
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Leaderboard</h2>
         <table className="min-w-full bg-white border border-gray-200 rounded-lg">
@@ -41,21 +51,37 @@ const Leaderboard = () => {
             </tr>
           </thead>
           <tbody>
-            {leaderboard.map((user, index) => (
+            {currentUsers.map((user, index) => (
               <tr
                 key={user.id}
                 className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
               >
-                <td className="py-2 px-4">{index + 1}</td>
+                <td className="py-2 px-4">{indexOfFirstItem + index + 1}</td>
                 <td className="py-2 px-4">{user.name}</td>
                 <td className="py-2 px-4">₹{user.total_cost.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {/* Custom Pagination */}
+        <div className="flex justify-center mt-4 space-x-2">
+          {pageNumbers.map((number) => (
+            <button
+              key={number}
+              onClick={() => setCurrentPage(number)}
+              className={`px-3 py-1 rounded ${
+                number === currentPage
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              {number}
+            </button>
+          ))}
+        </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 
