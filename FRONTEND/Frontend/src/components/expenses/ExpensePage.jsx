@@ -7,12 +7,11 @@ import Header from "../layout/Header";
 import ExpenseForm from "./ExpenseForm";
 import ExpenseList from "./ExpenseList";
 import Leaderboard from "../premium/Leaderboard";
-import PremiumBanner from "../premium/PremiumBanner";
 
 const ExpensePage = () => {
   const navigate = useNavigate();
 
-  const { isPremium, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { fetchExpenses, loading: expenseLoading } = useExpense();
 
   useEffect(() => {
@@ -33,7 +32,7 @@ const ExpensePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <PremiumBanner isPremium={isPremium} />
+      
       <Header />
       <ExpenseForm />
       <Leaderboard />

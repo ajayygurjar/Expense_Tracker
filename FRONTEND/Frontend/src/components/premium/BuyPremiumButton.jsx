@@ -5,19 +5,22 @@ const BuyPremiumButton = () => {
   const { isPremium } = useAuth();
   const { buyPremium, processing, error } = usePayment();
 
+  if (isPremium) return null;
+
   const handleBuyPremium = async () => {
-    if (processing) return; 
+    if (processing) return;
 
     const result = await buyPremium();
-    
+
     if (result.success) {
       alert(result.message);
     } else if (result.message) {
-
       if (result.message.includes("SDK not loaded")) {
         alert("Payment system is loading. Please wait a moment and try again.");
       } else if (result.message.includes("paymentSessionId")) {
-        alert("Technical error: Unable to initialize payment. Please contact support.");
+        alert(
+          "Technical error: Unable to initialize payment. Please contact support."
+        );
       } else {
         alert(result.message);
       }
@@ -43,12 +46,12 @@ const BuyPremiumButton = () => {
       className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-md ${
         isPremium || processing
           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-          : "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white hover:from-yellow-500 hover:to-yellow-700 hover:shadow-lg"
+          : "bg-yellow-500 text-white hover:bg-yellow-600 hover:shadow-lg"
       }`}
     >
       {processing ? (
         <span className="flex items-center gap-2">
-          <span className="animate-spin">⏳</span> Processing...
+          <span className="animate-spin">Loading...</span>
         </span>
       ) : isPremium ? (
         "Premium User"

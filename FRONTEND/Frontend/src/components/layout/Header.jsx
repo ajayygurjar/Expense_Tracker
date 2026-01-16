@@ -15,30 +15,28 @@ const Header = () => {
     }
   };
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className="bg-amber-200 shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          {/* Left section: Title + Premium badge */}
-          <div className="flex items-center space-x-3">
+        <div className="flex justify-between items-center py-3">
+          
+          <div className="flex items-center space-x-2">
             <h2 className="text-2xl font-bold text-indigo-600">
               Expense Tracker
             </h2>
-             <div className="flex items-center space-x-3">
-            
-            <DownloadButton />
             {isPremium && (
-              <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
+              <span className="bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
                 Premium
               </span>
             )}
           </div>
 
-          <div className="flex items-center space-x-3">
+          
+          <div className="flex items-center space-x-2">
             {isPremium && (
               <button
                 onClick={handleToggle}
                 disabled={loading}
-                className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-medium hover:bg-indigo-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading
                   ? "Loading..."
@@ -48,13 +46,14 @@ const Header = () => {
               </button>
             )}
 
-            <BuyPremiumButton />
-            <LogoutButton />
-          </div>
+            <BuyPremiumButton className="px-2 py-1 text-sm" />
+            <DownloadButton className="px-2 py-1 text-sm" />
+            <LogoutButton className="px-2 py-1 text-sm" />
           </div>
         </div>
       </div>
     </header>
   );
 };
+
 export default Header;
