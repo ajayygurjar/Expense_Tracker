@@ -4,7 +4,7 @@ const sequelize = require("../config/database");
 exports.addExpense = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { amount, description } = req.body;
+    const { amount, description,note } = req.body;
     let category = req.body.category;
 
     if (!amount || !description) {
@@ -21,6 +21,7 @@ exports.addExpense = async (req, res) => {
         amount,
         description,
         category,
+        note,
         userId: req.user.userId,
       },
       {

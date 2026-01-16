@@ -2,12 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { useExpense } from "../../context/ExpenseContext";
 
 const ExpenseForm = () => {
-  const { recentCategories, fetchCategories, addExpense, getSuggestedCategory } = useExpense();
+  const {
+    recentCategories,
+    fetchCategories,
+    addExpense,
+    getSuggestedCategory,
+  } = useExpense();
 
   const [expenseData, setExpenseData] = useState({
     amount: "",
     description: "",
     category: "",
+    note: "",
   });
 
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
@@ -41,7 +47,9 @@ const ExpenseForm = () => {
           category: result.suggestedCategory,
         }));
 
-        setSourceTag(result.source === "gemini" ? "AI Suggested" : "Local Match");
+        setSourceTag(
+          result.source === "gemini" ? "AI Suggested" : "Local Match"
+        );
 
         // Remove source tag after 3 seconds
         setTimeout(() => setSourceTag(""), 3000);
@@ -151,6 +159,20 @@ const ExpenseForm = () => {
                 {loadingSuggestion ? "..." : "AI Suggest"}
               </button>
             </div>
+          </div>
+          {/* Note */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1">
+              Note
+            </label>
+            <input
+              type="text"
+              name="note"
+              placeholder="Optional note"
+              value={expenseData.note || ""}
+              onChange={changeHandler}
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
           </div>
 
           {/* Category */}

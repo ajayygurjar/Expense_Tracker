@@ -24,7 +24,7 @@ app.use('/api/premium',premiumRoutes);
 app.use("/api/ai", aiCategoryRoutes);
 app.use("/api/password", passwordRoutes);
 
-sequelize.sync({ alter: true }).then(()=>{
+sequelize.sync().then(()=>{
    console.log("Database connected & tables created");
     app.listen(process.env.PORT, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);
