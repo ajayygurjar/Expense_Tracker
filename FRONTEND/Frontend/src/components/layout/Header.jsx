@@ -2,6 +2,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLeaderboard } from "../../context/LeaderboardContext";
 import BuyPremiumButton from "../premium/BuyPremiumButton";
 import LogoutButton from "./LogoutButton";
+import DownloadButton from "./DownloadButton";
 
 const Header = () => {
   const { isPremium } = useAuth();
@@ -22,7 +23,9 @@ const Header = () => {
             <h2 className="text-2xl font-bold text-indigo-600">
               Expense Tracker
             </h2>
-
+             <div className="flex items-center space-x-3">
+            
+            <DownloadButton />
             {isPremium && (
               <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
                 Premium
@@ -47,6 +50,7 @@ const Header = () => {
 
             <BuyPremiumButton />
             <LogoutButton />
+          </div>
           </div>
         </div>
       </div>
