@@ -1,7 +1,6 @@
 import axios from "../api/axios";
 import { useState, useCallback, createContext, useContext, useEffect } from "react";
 
-
 const ExpenseContext = createContext();
 
 export const ExpenseProvider = ({ children }) => {
@@ -9,12 +8,26 @@ export const ExpenseProvider = ({ children }) => {
   const [recentCategories, setRecentCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 1,
+    totalCount: 0,
+  });
 
-  const fetchExpenses = useCallback(async () => {
+  const fetchExpenses = useCallback(async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const res = await axios.get("/expenses");
+      const res = await axios.get(`/expenses?page=${page}&pageSize=${pageSize}`);
       setExpenses(res.data.expenses || []);
+      setPagination(
+        res.data.pagination || {
+          currentPage: page,
+          pageSize,
+          totalPages: 1,
+          totalCount: 0,
+        }
+      );
       setError(null);
     } catch (error) {
       console.error("Error fetching expenses", error);
@@ -24,6 +37,11 @@ export const ExpenseProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+
+  // Fetch initial expenses only once on mount
+  useEffect(() => {
+    fetchExpenses(1, 10);
+  }, [fetchExpenses]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -43,7 +61,8 @@ export const ExpenseProvider = ({ children }) => {
     setLoading(true);
     try {
       await axios.post("/expenses/add", expenseData);
-      await fetchExpenses();
+      // After adding, go to first page with current pageSize
+      await fetchExpenses(1, pagination.pageSize);
       await fetchCategories();
       setError(null);
       return { success: true };
@@ -64,7 +83,6 @@ export const ExpenseProvider = ({ children }) => {
     setLoading(true);
     try {
       await axios.delete(`/expenses/${id}`);
-      await fetchExpenses();
       setError(null);
       return { success: true };
     } catch (error) {
@@ -99,6 +117,7 @@ export const ExpenseProvider = ({ children }) => {
     recentCategories,
     loading,
     error,
+    pagination,
     fetchExpenses,
     fetchCategories,
     addExpense,
@@ -110,8 +129,6 @@ export const ExpenseProvider = ({ children }) => {
     <ExpenseContext.Provider value={value}>{children}</ExpenseContext.Provider>
   );
 };
-
-
 
 export const useExpense = () => {
   const context = useContext(ExpenseContext);

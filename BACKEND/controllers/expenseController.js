@@ -4,7 +4,7 @@ const sequelize = require("../config/database");
 exports.addExpense = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { amount, description,note } = req.body;
+    const { amount, description, note } = req.body;
     let category = req.body.category;
 
     if (!amount || !description) {
@@ -52,15 +52,39 @@ exports.addExpense = async (req, res) => {
 
 exports.getExpenses = async (req, res) => {
   try {
+    // Parse and validate pagination parameters
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 10, 1), 100); // Changed from 5 to 1
+    const offset = (page - 1) * pageSize;
+
+    // Get total count for this user
+    const totalCount = await Expense.count({
+      where: { userId: req.user.userId },
+    });
+
+    // Fetch paginated expenses
     const expenses = await Expense.findAll({
       where: { userId: req.user.userId },
       order: [["createdAt", "DESC"]],
+      limit: pageSize,
+      offset,
     });
 
-    return res.status(200).json({ expenses });
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / pageSize) || 1; // Ensure at least 1
+
+    res.status(200).json({
+      expenses,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalPages,
+        totalCount,
+      },
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -73,6 +97,7 @@ exports.deleteExpenses = async (req, res) => {
       transaction: t,
     });
     if (!expense) {
+      await t.rollback();
       return res.status(404).json({ message: "Expense not found" });
     }
     const expenseAmount = parseFloat(expense.amount);
@@ -87,7 +112,7 @@ exports.deleteExpenses = async (req, res) => {
       );
     }
     await t.commit();
-    return res.status(200).json({ message: "expense deleted successfully" });
+    return res.status(200).json({ message: "Expense deleted successfully" });
   } catch (error) {
     await t.rollback();
     console.error(error);
@@ -107,6 +132,7 @@ exports.getCategories = async (req, res) => {
       categories: expenses.map((e) => e.category),
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
