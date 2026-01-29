@@ -1,4 +1,4 @@
-import { useState, createContext, useContext } from "react";
+import { useState, createContext, useContext, useCallback } from "react";
 import axios from "../api/axios";
 
 const LeaderboardContext = createContext();
@@ -6,15 +6,19 @@ const LeaderboardContext = createContext();
 export const LeaderboardProvider = ({ children }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [error, setError] = useState(null);
+  const [isFetched, setIsFetched] = useState(false); 
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async (forceRefresh = false) => {
+    if (isFetched && !forceRefresh) {
+      return { success: true, cached: true };
+    }
+
     setLoading(true);
     try {
       const res = await axios.get("/premium/leaderboard");
       setLeaderboard(res.data.leaderboard || []);
-      setShowLeaderboard(true);
+      setIsFetched(true);
       setError(null);
       return { success: true };
     } catch (error) {
@@ -33,24 +37,19 @@ export const LeaderboardProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isFetched]);
 
-  const toggleLeaderboard = async () => {
-    if (showLeaderboard) {
-      setShowLeaderboard(false);
-      return { success: true };
-    } else {
-      return await fetchLeaderboard();
-    }
-  };
+  const refreshLeaderboard = useCallback(async () => {
+    return await fetchLeaderboard(true);
+  }, [fetchLeaderboard]);
 
   const value = {
     leaderboard,
     loading,
-    showLeaderboard,
     error,
+    isFetched,
     fetchLeaderboard,
-    toggleLeaderboard,
+    refreshLeaderboard,
   };
 
   return (
@@ -59,7 +58,6 @@ export const LeaderboardProvider = ({ children }) => {
     </LeaderboardContext.Provider>
   );
 };
-
 
 export const useLeaderboard = () => {
   const context = useContext(LeaderboardContext);

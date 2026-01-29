@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { useExpense } from "../../context/ExpenseContext";
-import { useLeaderboard } from "../../context/LeaderboardContext";
 
 const ExpenseList = () => {
   const { expenses, deleteExpense, pagination, fetchExpenses } = useExpense();
-  const { showLeaderboard, fetchLeaderboard } = useLeaderboard();
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,8 +18,6 @@ const ExpenseList = () => {
 
     const result = await deleteExpense(id);
     if (result.success) {
-      if (showLeaderboard) fetchLeaderboard();
-
       const remainingItemsOnPage = expenses.length - 1;
       if (remainingItemsOnPage === 0 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
@@ -44,7 +40,7 @@ const ExpenseList = () => {
 
   if (!expenses || expenses.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
+      <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-4 text-gray-800">
           Your Expenses
         </h2>
@@ -86,7 +82,7 @@ const ExpenseList = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Your Expenses</h2>
 
       <div className="mb-4 flex justify-between items-center">
@@ -108,7 +104,7 @@ const ExpenseList = () => {
                   onClick={() => setShowSettings(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  Close
+                  ✕
                 </button>
               </div>
               <div className="grid grid-cols-4 gap-2">
@@ -116,10 +112,11 @@ const ExpenseList = () => {
                   <button
                     key={size}
                     onClick={() => handlePageSizeChange(size)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${itemsPerPage === size
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      itemsPerPage === size
                         ? "bg-blue-500 text-white"
                         : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      }`}
+                    }`}
                   >
                     {size}
                   </button>
@@ -136,26 +133,30 @@ const ExpenseList = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto min-h-0">
+      <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="sticky top-0 bg-white">
+          <thead className="bg-gray-50">
             <tr className="border-b">
-              <th className="text-left py-2 px-2">Amount</th>
-              <th className="text-left py-2 px-2">Description</th>
-              <th className="text-left py-2 px-2">Category</th>
-              <th className="text-left py-2 px-2">Actions</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Amount</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
             {expenses.map((exp) => (
-              <tr key={exp.id} className="border-b hover:bg-gray-50">
-                <td className="py-2 px-2">Rs. {exp.amount}</td>
-                <td className="py-2 px-2">{exp.description}</td>
-                <td className="py-2 px-2">{exp.category}</td>
-                <td className="py-2 px-2">
+              <tr key={exp.id} className="border-b hover:bg-gray-50 transition-colors">
+                <td className="py-3 px-4 font-medium">₹{exp.amount}</td>
+                <td className="py-3 px-4">{exp.description}</td>
+                <td className="py-3 px-4">
+                  <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm">
+                    {exp.category}
+                  </span>
+                </td>
+                <td className="py-3 px-4">
                   <button
                     onClick={() => deleteHandler(exp.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors"
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors text-sm"
                   >
                     Delete
                   </button>
@@ -167,14 +168,15 @@ const ExpenseList = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-4 flex justify-center gap-2 items-center">
+        <div className="mt-6 flex justify-center gap-2 items-center">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded ${currentPage === 1
+            className={`px-3 py-1 rounded ${
+              currentPage === 1
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+            }`}
           >
             Prev
           </button>
@@ -188,10 +190,11 @@ const ExpenseList = () => {
               <button
                 key={number}
                 onClick={() => setCurrentPage(number)}
-                className={`px-3 py-1 rounded ${number === currentPage
+                className={`px-3 py-1 rounded ${
+                  number === currentPage
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
+                }`}
               >
                 {number}
               </button>
@@ -203,10 +206,11 @@ const ExpenseList = () => {
               setCurrentPage((prev) => Math.min(totalPages, prev + 1))
             }
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded ${currentPage === totalPages
+            className={`px-3 py-1 rounded ${
+              currentPage === totalPages
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+            }`}
           >
             Next
           </button>

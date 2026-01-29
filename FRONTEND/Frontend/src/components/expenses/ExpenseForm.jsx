@@ -86,7 +86,7 @@ const ExpenseForm = () => {
 
     if (result.success) {
       alert("Expense added successfully!");
-      setExpenseData({ amount: "", description: "", category: "" });
+      setExpenseData({ amount: "", description: "", category: "", note: "" });
       setSourceTag("");
       lastDescriptionRef.current = "";
     } else {
@@ -95,7 +95,7 @@ const ExpenseForm = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-4 border border-gray-100 max-w-7xl mx-auto">
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100">
       <h3 className="text-xl font-bold text-gray-800 mb-6 flex justify-between items-center">
         Add New Expense
         {sourceTag && (
@@ -112,7 +112,7 @@ const ExpenseForm = () => {
       </h3>
 
       <form onSubmit={submitHandler} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Amount */}
           <div className="flex flex-col">
             <label className="text-sm font-semibold text-gray-600 mb-1">
@@ -156,23 +156,9 @@ const ExpenseForm = () => {
                     : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                 }`}
               >
-                {loadingSuggestion ? "..." : "AI Suggest"}
+                {loadingSuggestion ? "..." : "AI"}
               </button>
             </div>
-          </div>
-          {/* Note */}
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
-              Note
-            </label>
-            <input
-              type="text"
-              name="note"
-              placeholder="Optional note"
-              value={expenseData.note || ""}
-              onChange={changeHandler}
-              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
-            />
           </div>
 
           {/* Category */}
@@ -195,6 +181,21 @@ const ExpenseForm = () => {
                 <option key={i} value={cat} />
               ))}
             </datalist>
+          </div>
+
+          {/* Note */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1">
+              Note (Optional)
+            </label>
+            <input
+              type="text"
+              name="note"
+              placeholder="Additional notes"
+              value={expenseData.note || ""}
+              onChange={changeHandler}
+              className="border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
           </div>
         </div>
 
