@@ -136,3 +136,43 @@ exports.getCategories = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getExpenseReport = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const monthlySummary = await Expense.findAll({
+      where: { userId },
+      attributes: [
+        [sequelize.fn("YEAR", sequelize.col("createdAt")), "year"],
+        [sequelize.fn("MONTH", sequelize.col("createdAt")), "month"],
+        [sequelize.fn("SUM", sequelize.col("amount")), "totalAmount"],
+      ],
+      group: ["year", "month"],
+      order: [
+        [sequelize.literal("year"), "DESC"],
+        [sequelize.literal("month"), "DESC"],
+      ],
+      raw: true,
+    });
+
+
+    const totalExpense = await Expense.sum("amount", {
+      where: { userId },
+    });
+
+
+    const expenses = await Expense.findAll({
+      where: { userId },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({
+      monthlySummary,
+      totalExpense: totalExpense || 0,
+      expenses,
+    });
+  } catch (error) {
+    console.error("Report Error:", error);
+    res.status(500).json({ message: "Failed to fetch report" });
+  }
+};
