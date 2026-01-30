@@ -7,15 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
 dist
 dist-ssr
 *.local
+build/
 
-
-# Environment files
+# CRITICAL: Environment files - NEVER COMMIT THESE
 .env
-.env*
+.env.local
+.env.development
+.env.test
+.env.production
+!.env.example
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +35,32 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# MySQL specific (if you have local dumps/backups)
+*.sql
+*.sql.gz
+*.sql.zip
+dump/
+backups/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Logs directory (keep structure, ignore content)
+logs/*.log

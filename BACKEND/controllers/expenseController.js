@@ -1,5 +1,6 @@
 const { Expense, User } = require("../models");
 const sequelize = require("../config/database");
+const { logError } = require("../utils/logger");
 
 exports.addExpense = async (req, res) => {
   const t = await sequelize.transaction();
@@ -43,6 +44,7 @@ exports.addExpense = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error(error);
+    logError(error, req, res);
     return res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -84,6 +86,7 @@ exports.getExpenses = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    logError(error, req, res);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -116,6 +119,7 @@ exports.deleteExpenses = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error(error);
+    logError(error, req, res);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -133,6 +137,7 @@ exports.getCategories = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    logError(error, req, res);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -173,6 +178,7 @@ exports.getExpenseReport = async (req, res) => {
     });
   } catch (error) {
     console.error("Report Error:", error);
+    logError(error, req, res);
     res.status(500).json({ message: "Failed to fetch report" });
   }
 };

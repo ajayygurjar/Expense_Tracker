@@ -1,4 +1,5 @@
 const { suggestCategory } = require("../services/aiCategoryService");
+const { logError } = require("../utils/logger");
 
 exports.getSuggestedCategory = async (req, res) => {
   try {
@@ -8,6 +9,7 @@ exports.getSuggestedCategory = async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     console.error("AI Controller Error:", error);
+    logError(error, req, res); 
     return res.status(200).json({
       suggestedCategory: "others",
       source: "error"

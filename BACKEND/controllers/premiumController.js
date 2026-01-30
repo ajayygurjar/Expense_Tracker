@@ -1,12 +1,13 @@
 const { User, Expense } = require("../models");
 const { Sequelize } = require("sequelize");
+const { logger } = require("../utils/logger");
 
 exports.getUserProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
 
     const user = await User.findByPk(userId, {
-      attributes: ["id", "name", "email", "isPremium",'totalCost'],
+      attributes: ["id", "name", "email", "isPremium", "totalCost"],
     });
 
     if (!user) {
@@ -19,11 +20,12 @@ exports.getUserProfile = async (req, res) => {
         name: user.name,
         email: user.email,
         isPremium: user.isPremium,
-        totalCost:user.totalCost,
+        totalCost: user.totalCost,
       },
     });
   } catch (error) {
     console.error(error);
+    logError(error, req, res);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -47,7 +49,7 @@ exports.getLeaderboard = async (req, res) => {
     const leaderboard = await User.findAll({
       attributes: ["id", "name", "totalCost"],
 
-      order:[["totalCost", "DESC"]],
+      order: [["totalCost", "DESC"]],
 
       limit: 100,
     });
@@ -64,6 +66,7 @@ exports.getLeaderboard = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
+    logError(error, req, res);
     return res.status(500).json({
       message: "Server error",
       error: error.message,
